@@ -16,6 +16,7 @@ class LoadImage():
         self.name = os.path.basename(path).split(".")[0]
         self.data = self.get_data()
         self.header = self.get_img().header
+        self.affine = self.get_img().affine
     
     def get_img(self):
 
