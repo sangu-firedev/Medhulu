@@ -4,6 +4,7 @@ import ants
 import nibabel as nib
 import os
 from scipy.ndimage import zoom
+from src.main import LoadImage
 
 def register(input_folder, output_folder, fixed_image, filename, transform):
     moving_path = os.path.join(input_folder, filename)
@@ -31,7 +32,7 @@ def zscore_normalization(self):
     std_int = np.std(mri)
 
     mri_norm = (mri - mean_int) / std_int
-    return nib.Nifti1Image(mri_norm, affine)
+    return LoadImage(mri_norm, affine)
 
 def min_max_normalization(self):
     mri = self.data
@@ -41,7 +42,7 @@ def min_max_normalization(self):
     mri_max = np.max(mri)
 
     mri_minmax = (mri - mri_min)/(mri_max - mri_min)
-    return nib.Nifti1Image(mri_minmax, affine)
+    return LoadImage(mri_minmax, affine)
     
 def resample(self, shape):
 
@@ -50,13 +51,13 @@ def resample(self, shape):
 
     zoom_factors = np.array(shape)/np.array(mri.shape)
     resampled_data = zoom(mri, zoom_factors, order=3)
-    return nib.Nifti1Image(resampled_data, affine)
+    return LoadImage(resampled_data, affine)
 
 def N4_bias_field_correction(self):
     ants_img = ants.from_numpy(self.data)
     mri_correction = ants.n4_bias_filed_correction(ants_img)
     img = mri_correction.numpy()
-    return nib.Nifti1Image(img, self.affine)
+    return LoadImage(img, self.affine)
 
 def extract_gm_wm_csf(input_folder, output_folder, ):
     os.makedirs(output_folder, exist_ok=True)
