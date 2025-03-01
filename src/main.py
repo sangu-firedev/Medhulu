@@ -50,5 +50,5 @@ class LoadImage():
         _skull_strip(self, output_dir)
 
         if load_nib == True:
-            return LoadImage(f'{output_dir}{self.name}_ss{get_file_ext(self.path)}')
+            return LoadImage(f'{output_dir}/{self.name}_ss{get_file_ext(self.path)}')
 

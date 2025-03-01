@@ -10,6 +10,7 @@ def register(input_folder, output_folder, fixed_image, filename, transform):
 
     output_path = os.path.join(output_folder, f"coreg_{filename}")
     ants.image_write(reg['warpedmoveout'], output_path)
+    print(f"Registered : {filename}")
 
 def register_images(input_folder, output_folder, fixed_image, transform, thread=4):
     fixed = ants.image_read(fixed_image)
