@@ -32,7 +32,7 @@ def zscore_normalization(self):
     std_int = np.std(mri)
 
     mri_norm = (mri - mean_int) / std_int
-    return LoadImage(mri_norm, affine)
+    return LoadImage(data=mri_norm, affine=affine)
 
 def min_max_normalization(self):
     mri = self.data
@@ -42,7 +42,7 @@ def min_max_normalization(self):
     mri_max = np.max(mri)
 
     mri_minmax = (mri - mri_min)/(mri_max - mri_min)
-    return LoadImage(mri_minmax, affine)
+    return LoadImage(data=mri_minmax, affine=affine)
     
 def resample(self, shape):
 
@@ -51,13 +51,13 @@ def resample(self, shape):
 
     zoom_factors = np.array(shape)/np.array(mri.shape)
     resampled_data = zoom(mri, zoom_factors, order=3)
-    return LoadImage(resampled_data, affine)
+    return LoadImage(data=resampled_data, affine=affine)
 
 def N4_bias_field_correction(self):
     ants_img = ants.from_numpy(self.data)
     mri_correction = ants.n4_bias_filed_correction(ants_img)
     img = mri_correction.numpy()
-    return LoadImage(img, self.affine)
+    return LoadImage(data=img, affine=self.affine)
 
 def extract_gm_wm_csf(input_folder, output_folder, ):
     os.makedirs(output_folder, exist_ok=True)
