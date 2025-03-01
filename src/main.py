@@ -11,12 +11,20 @@ from utilities.plotting import _plot
 
 class LoadImage():
     
-    def __init__(self, path):
-        self.path = path
-        self.name = os.path.basename(path).split(".")[0]
-        self.data = self.get_data()
-        self.header = self.get_img().header
-        self.affine = self.get_img().affine
+    def __init__(self, path=None, data=None, affine=None):
+
+        if path is not None:
+            self.path = path
+            self.name = os.path.basename(path).split(".")[0]
+            self.data = self.get_data()
+            self.header = self.get_img().header
+            self.affine = self.get_img().affine
+        if data is not None and affine is not None:
+            self.path = None
+            self.name = None
+            self.data = data
+            self.header = None
+            self.affine = affine
     
     def get_img(self):
 
