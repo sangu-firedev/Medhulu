@@ -10,7 +10,7 @@ from functools import partial
 from tqdm import tqdm
 
 from src.main import LoadImage
-from utilities.load_files import load_files, save_nifti 
+from utilities.load_files import save_nifti 
 
 def register(input_folder, output_folder, fixed_image, filename, transform):
     moving_path = os.path.join(input_folder, filename)
@@ -99,21 +99,54 @@ def preprocess_file(img, output_path):
 
     save_nifti(label_mask, output_path) 
 
-def preproces_pipeline(input_path, output_path, workers):
+def preproces_pipeline(input_path, output_path, workers, batch_size):
 
     images = load_files(input_path)
     os.makedirs(output_path, exist_ok=True)
 
-    print(f"Preprocessing {len(images)} Images with {workers} Threads")
+    all_files = list_files(input_path)
 
-    partial_preprocess_func = partial(preprocess_file, output_path=output_path)
+    print(f"Preprocessing {len(all_files)} Images with {workers} Workers")
+
+    for batch_num, file_batch in enumerate(batch_iterator(all_files, batch_size), start=1):
+        print(f"\n🔹 Processing Batch {batch_num}")
+
+        # **Step 3: Load only batch-size images into memory**
+        images = load_files(file_batch)  # Now only loading `batch_size` images
+
+        partial_preprocess_func = partial(preprocess_file, output_path=output_path)
+
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            futures = {executor.submit(partial_preprocess_func, img): img for img in images}
+
+            for _ in tqdm(as_completed(futures), total=len(images), desc=f"Batch {batch_num} Progress"):
+                pass  # Just iterating to track completion
+
+    #partial_preprocess_func = partial(preprocess_file, output_path=output_path)
 
     #with ThreadPoolExecutor(max_workers=threads) as executor:
     #    tqdm(executor.map(partial_preprocess_func, images), total=len(images), desc="Processing Images")
-    with ProcessPoolExecutor(max_workers=workers) as executor:
-        futures = {executor.submit(partial_preprocess_func, img): img for img in images}
+    #with ProcessPoolExecutor(max_workers=workers) as executor:
+    #    futures = {executor.submit(partial_preprocess_func, img): img for img in images}
 
-        for _ in tqdm(as_completed(futures), total=len(images), desc="Processing Images"):
-            pass
+    #    for _ in tqdm(as_completed(futures), total=len(images), desc="Processing Images"):
+    #        pass
     
     print("Preprocessing completed!")
+
+def load_files(file_batch):
+    """Load only the given batch of files to avoid memory overuse."""
+    return [LoadImage(file_path) for file_path in file_batch]  # Load batch-size files at a time
+
+def list_files(folder_path):
+    """List only valid files from the directory (no loading yet)."""
+    return sorted([
+        os.path.join(folder_path, file) 
+        for file in os.listdir(folder_path) 
+        if file.endswith(("nii.gz", "mgz", "img", "img.gz"))
+    ])
+
+def batch_iterator(file_list, batch_size):
+    """Yield successive batch-sized chunks from the list of files."""
+    for i in range(0, len(file_list), batch_size):
+        yield file_list[i:i + batch_size]
