@@ -50,7 +50,7 @@ class LoadImage():
     def get_data(self):
         return self.get_img().get_fdata()
 
-    def plot(self, slice='mid'):
+    def plot(self, slice=None):
         _plot(self, slice=slice), 
 
     def skull_strip(self, output_dir, load_nib=True):
