@@ -4,8 +4,10 @@ import ants
 import nibabel as nib
 import os
 from scipy.ndimage import zoom
-from concurrent.futures import ThreadPoolExecutor
+#from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import partial
+from tqdm import tqdm
 
 from src.main import LoadImage
 from utilities.load_files import load_files, save_nifti 
@@ -97,17 +99,21 @@ def preprocess_file(img, output_path):
 
     save_nifti(label_mask, output_path) 
 
-def preproces_pipeline(input_path, output_path, threads):
+def preproces_pipeline(input_path, output_path, workers):
 
     images = load_files(input_path)
+    os.makedirs(output_path, exist_ok=True)
 
-    print(f"Preprocessing {len(images)} with {threads}")
+    print(f"Preprocessing {len(images)} Images with {workers} Threads")
 
     partial_preprocess_func = partial(preprocess_file, output_path=output_path)
 
-    with ThreadPoolExecutor(max_workers=threads) as executor:
-        executor.map(partial_preprocess_func, images)
+    #with ThreadPoolExecutor(max_workers=threads) as executor:
+    #    tqdm(executor.map(partial_preprocess_func, images), total=len(images), desc="Processing Images")
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = {executor.submit(partial_preprocess_func, img): img for img in images}
+
+        for _ in tqdm(as_completed(futures), total=len(images), desc="Processing Images"):
+            pass
     
     print("Preprocessing completed!")
-
-
