@@ -101,9 +101,13 @@ def preproces_pipeline(input_path, output_path, threads):
 
     images = load_files(input_path)
 
-    partial_preprocess_func = partial(preprocess_file, output_path)
+    print(f"Preprocessing {len(images)} with {threads}")
+
+    partial_preprocess_func = partial(preprocess_file, output_path=output_path)
 
     with ThreadPoolExecutor(max_workers=threads) as executor:
         executor.map(partial_preprocess_func, images)
+    
+    print("Preprocessing completed!")
 
 
