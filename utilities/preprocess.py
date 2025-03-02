@@ -4,7 +4,11 @@ import ants
 import nibabel as nib
 import os
 from scipy.ndimage import zoom
+from concurrent.futures import ThreadPoolExecutor
+from functools import partial
+
 from src.main import LoadImage
+from utilities.load_files import load_files, save_nifti 
 
 def register(input_folder, output_folder, fixed_image, filename, transform):
     moving_path = os.path.join(input_folder, filename)
@@ -60,7 +64,18 @@ def N4_bias_field_correction(self):
     img = mri_correction.numpy()
     return LoadImage(data=img, affine=self.affine)
 
-# Not using this function, Cause of quality issues
+def get_labelled_mask(csf_img, gm_img, wm_img, affine):
+
+    # Intensity Normalization
+    csf_n = (csf_img.data > 0.5).astype(np.uint8)
+    gm_n = (gm_img.data > 0.5).astype(np.uint8)
+    wm_n = (wm_img.data > 0.5).astype(np.uint8)
+
+    # Labelling different masks with integer values
+    masked_label = csf_n * 1 + gm_n * 2 + wm_n * 3
+
+    return LoadImage(data=masked_label, affine=affine)
+
 def extract_gm_wm_csf(self):
 
     img = ants.from_numpy(self.data)
@@ -71,4 +86,24 @@ def extract_gm_wm_csf(self):
     wm_img = LoadImage(data=extraction['probabilityimages'][2].numpy(), affine=self.affine)
     return csf_img, gm_img, wm_img 
 
-def transform()
+def preprocess_file(img, output_path):
+    img_norm = min_max_normalization(img)
+    n4_img_norm = N4_bias_field_correction(img_norm)
+    csf_img, gm_img, wm_img = extract_gm_wm_csf(n4_img_norm)
+    label_mask = get_labelled_mask(csf_img, gm_img, wm_img, img.affine)
+
+    file_name = f"{img.name}.label"
+    output_path = f"{output_path}/{file_name}.nii.gz"
+
+    save_nifti(label_mask, output_path) 
+
+def preproces_pipeline(input_path, output_path, threads):
+
+    images = load_files(input_path)
+
+    partial_preprocess_func = partial(preprocess_file, output_path)
+
+    with ThreadPoolExecutor(max_workers=threads) as executor:
+        executor.map(partial_preprocess_func, images)
+
+

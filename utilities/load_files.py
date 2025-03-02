@@ -10,13 +10,13 @@ def load_files(folder_path):
 
     for file in folder:
         file_path = os.path.join(folder_path, file)
-        if file.endswith(("nii.gz", "mgz", "img")):
+        if file.endswith(("nii.gz", "mgz", "img", "img.gz")):
             images_list.append(LoadImage(file_path))
     
     return images_list
 
-def save_nifti(data, affine, output_path):
-    nib_img = nib.Nifti1Image(data, affine)
+def save_nifti(img, output_path):
+    nib_img = nib.Nifti1Image(img.data, img.affine)
     nib.save(nib_img, output_path)
 
 def multiple_file_handler(folder_path : str) -> DataFrame :
