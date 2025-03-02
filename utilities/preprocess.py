@@ -64,6 +64,16 @@ def N4_bias_field_correction(self):
     img = mri_correction.numpy()
     return LoadImage(data=img, affine=self.affine)
 
+def extract_gm_wm_csf(self):
+
+    img = ants.from_numpy(self.data)
+    mask = ants.get_mask(img)
+    extraction = ants.atropos(a=img, m='[0.2,1x1x1]', c='[2,0]', i='kmeans[3]', x=mask) 
+    csf_img = LoadImage(data=extraction['probabilityimages'][0].numpy(), affine=self.affine)
+    gm_img = LoadImage(data=extraction['probabilityimages'][1].numpy(), affine=self.affine)
+    wm_img = LoadImage(data=extraction['probabilityimages'][2].numpy(), affine=self.affine)
+    return csf_img, gm_img, wm_img 
+
 def get_labelled_mask(csf_img, gm_img, wm_img, affine):
 
     # Intensity Normalization
@@ -75,16 +85,6 @@ def get_labelled_mask(csf_img, gm_img, wm_img, affine):
     masked_label = csf_n * 1 + gm_n * 2 + wm_n * 3
 
     return LoadImage(data=masked_label, affine=affine)
-
-def extract_gm_wm_csf(self):
-
-    img = ants.from_numpy(self.data)
-    mask = ants.get_mask(img)
-    extraction = ants.atropos(a=img, m='[0.2,1x1x1]', c='[2,0]', i='kmeans[3]', x=mask) 
-    csf_img = LoadImage(data=extraction['probabilityimages'][0].numpy(), affine=self.affine)
-    gm_img = LoadImage(data=extraction['probabilityimages'][1].numpy(), affine=self.affine)
-    wm_img = LoadImage(data=extraction['probabilityimages'][2].numpy(), affine=self.affine)
-    return csf_img, gm_img, wm_img 
 
 def preprocess_file(img, output_path):
     img_norm = min_max_normalization(img)
