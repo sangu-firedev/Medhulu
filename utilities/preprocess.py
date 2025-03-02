@@ -54,27 +54,21 @@ def resample(self, shape):
     return LoadImage(data=resampled_data, affine=affine)
 
 def N4_bias_field_correction(self):
+
     ants_img = ants.from_numpy(self.data)
-    mri_correction = ants.n4_bias_filed_correction(ants_img)
+    mri_correction = ants.n4_bias_field_correction(ants_img)
     img = mri_correction.numpy()
     return LoadImage(data=img, affine=self.affine)
 
+# Not using this function, Cause of quality issues
 def extract_gm_wm_csf(self):
+
     img = ants.from_numpy(self.data)
     mask = ants.get_mask(img)
-    extraction = ants.atropos(a=img, m='[0.2,1x1x1]', c='[2,0]', i='kmeans[3]', x=img) 
-    csf_img = LoadImage(extraction['probabilityimages'][0].numpy(), self.affine)
-    gm_img = LoadImage(extraction['probabilityimages'][1].numpy(), self.affine)
-    wm_img = LoadImage(extraction['probabilityimages'][2].numpy(), self.affine)
+    extraction = ants.atropos(a=img, m='[0.2,1x1x1]', c='[2,0]', i='kmeans[3]', x=mask) 
+    csf_img = LoadImage(data=extraction['probabilityimages'][0].numpy(), affine=self.affine)
+    gm_img = LoadImage(data=extraction['probabilityimages'][1].numpy(), affine=self.affine)
+    wm_img = LoadImage(data=extraction['probabilityimages'][2].numpy(), affine=self.affine)
     return csf_img, gm_img, wm_img 
 
-def extract_gm_wm_csf_files(input_folder, output_folder, ):
-
-    os.makedirs(output_folder, exist_ok=True)
-
-    file_list = [f for f in os.listdir(input_folder) if f.endswith(("nii.gz", "mgz", "img", "img.gz"))]
-
-    for file in file_list:
-        file_path = os.path.join(input_folder, file)
-        img = ants.image_read(file_path)
-
+def transform()

@@ -1,6 +1,7 @@
 import os
 from pandas import DataFrame
 from src.main import LoadImage
+import nibabel as nib
 
 def load_files(folder_path):
 
@@ -13,6 +14,10 @@ def load_files(folder_path):
             images_list.append(LoadImage(file_path))
     
     return images_list
+
+def save_nifti(data, affine, output_path):
+    nib_img = nib.Nifti1Image(data, affine)
+    nib.save(nib_img, output_path)
 
 def multiple_file_handler(folder_path : str) -> DataFrame :
 

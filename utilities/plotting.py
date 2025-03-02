@@ -29,6 +29,7 @@ def _plot(self, slice=None):
     axs[2].imshow(axial_mid, cmap='gray', aspect='auto')
     fig.tight_layout(pad=2.5)
     fig.suptitle(f"{self.name}")
+    plt.axis("off")
     plt.show()
 
 def plot_with_mask(self, masks, slice=None):
@@ -106,7 +107,7 @@ def plot_with_mask(self, masks, slice=None):
     # Adjust layout and title
     fig.tight_layout(pad=2.5)
     fig.suptitle(f"{self.name}")
-    
+    plt.axis("off")
     plt.show()
 
 
