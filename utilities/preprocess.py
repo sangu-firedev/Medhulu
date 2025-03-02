@@ -101,7 +101,6 @@ def preprocess_file(img, output_path):
 
 def preproces_pipeline(input_path, output_path, workers, batch_size):
 
-    images = load_files(input_path)
     os.makedirs(output_path, exist_ok=True)
 
     all_files = list_files(input_path)
