@@ -27,6 +27,7 @@ class LoadImage():
             self.affine = affine
     
     def get_img(self):
+        """Returns the Image in Nibabel format"""
 
         if os.path.basename(self.path).endswith("img.gz"):
             with tempfile.TemporaryDirectory() as tmp_dir: 
@@ -48,10 +49,11 @@ class LoadImage():
         return img
     
     def get_data(self):
+        """Returns the MRI data array"""
         return self.get_img().get_fdata()
 
-    def plot(self, slice=None):
-        _plot(self, slice=slice), 
+    def plot(self, slice=None, save_path=None):
+        _plot(self, slice=slice, save_path=save_path), 
 
     def skull_strip(self, output_dir, load_nib=True):
         from utilities.load_files import get_file_ext

@@ -4,7 +4,6 @@ import ants
 import nibabel as nib
 import os
 from scipy.ndimage import zoom
-#from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import partial
 from tqdm import tqdm
@@ -12,7 +11,24 @@ from tqdm import tqdm
 from src.main import LoadImage
 from utilities.load_files import save_nifti 
 
+
+#########################################
 def register(input_folder, output_folder, fixed_image, filename, transform):
+    """
+    Process :
+        Co-registering all the MRI images from the input_folder to common reference fixed_image
+
+    Inputs :
+        input_folder : str
+        output_folder : str
+        fixed_image: ANTsImage 
+        filename: str
+        transform: str
+
+    Outputs :
+        None : saves the Registered image to the output folder 
+
+    """
     moving_path = os.path.join(input_folder, filename)
     moving_image = ants.image_read(moving_path)
 
@@ -22,15 +38,18 @@ def register(input_folder, output_folder, fixed_image, filename, transform):
     ants.image_write(reg['warpedmovout'], output_path)
     print(f"Registered : {filename}")
 
+#########################################
 def register_images(input_folder, output_folder, fixed_image, transform, thread=4):
     fixed = ants.image_read(fixed_image)
     os.makedirs(output_folder, exist_ok=True)
 
     file_list = [f for f in os.listdir(input_folder) if f.endswith(("nii.gz", "mgz", "img", "img.gz"))]
 
-    Parallel(n_jobs=4)(delayed(register)(input_folder, output_folder, fixed, f, transform) for f in file_list)
+    Parallel(n_jobs=thread)(delayed(register)(input_folder, output_folder, fixed, f, transform) for f in file_list)
 
+#########################################
 def zscore_normalization(self):
+    """ return Z-Score normalized image (LoadImage) """
     mri = self.data
     affine = self.affine
 
@@ -40,7 +59,9 @@ def zscore_normalization(self):
     mri_norm = (mri - mean_int) / std_int
     return LoadImage(data=mri_norm, affine=affine)
 
+#########################################
 def min_max_normalization(self):
+    """ return Min-Max normalized image (LoadImage) """
     mri = self.data
     affine = self.affine
     
@@ -50,7 +71,9 @@ def min_max_normalization(self):
     mri_minmax = (mri - mri_min)/(mri_max - mri_min)
     return LoadImage(data=mri_minmax, affine=affine)
     
+#########################################
 def resample(self, shape):
+    """ return Resampled image (LoadImage) to desired shape """
 
     mri = self.data
     affine = self.affine
@@ -59,14 +82,31 @@ def resample(self, shape):
     resampled_data = zoom(mri, zoom_factors, order=3)
     return LoadImage(data=resampled_data, affine=affine)
 
+#########################################
 def N4_bias_field_correction(self):
+    """ 
+    return image (LoadImage) with N4 Bias Field Corrected, Maintains uniform intensity, helps to get good extraction in 
+    extract_gm_wm_csf() function
+    """
 
     ants_img = ants.from_numpy(self.data)
     mri_correction = ants.n4_bias_field_correction(ants_img)
     img = mri_correction.numpy()
     return LoadImage(data=img, affine=self.affine)
 
+#########################################
 def extract_gm_wm_csf(self):
+    """
+    Process :
+        extracting the CSF, Grey Matter & White Matter from the Raw MRI image using ANTS.antropos as returning them seperately 
+
+    Inputs :
+        self : LoadImage
+
+    Outputs :
+        (csf_img, gm_img, wm_img) :  Tuple
+
+    """
 
     img = ants.from_numpy(self.data)
     mask = ants.get_mask(img)
@@ -76,7 +116,9 @@ def extract_gm_wm_csf(self):
     wm_img = LoadImage(data=extraction['probabilityimages'][2].numpy(), affine=self.affine)
     return csf_img, gm_img, wm_img 
 
+#########################################
 def get_labelled_mask(csf_img, gm_img, wm_img, affine):
+    """Labelling different mask images with appropriate values and return the combination of all three as LoadImage image"""
 
     # Intensity Normalization
     csf_n = (csf_img.data > 0.5).astype(np.uint8)
@@ -88,7 +130,15 @@ def get_labelled_mask(csf_img, gm_img, wm_img, affine):
 
     return LoadImage(data=masked_label, affine=affine)
 
+#########################################
 def preprocess_file(img, output_path):
+    """ 
+    Run min_max_normatlization() -> N4_bias_field_correction() -> extract_gm_wm_csf() -> get_labelled_mask() preprocessing
+    operations on the input image
+
+    Note : Can include skull stripping if you can import the set a pytorch model using SynthStrip weights and run inference through it
+    """
+
     img_norm = min_max_normalization(img)
     n4_img_norm = N4_bias_field_correction(img_norm)
     csf_img, gm_img, wm_img = extract_gm_wm_csf(n4_img_norm)
@@ -99,7 +149,24 @@ def preprocess_file(img, output_path):
 
     save_nifti(label_mask, output_path) 
 
+#########################################
 def preproces_pipeline(input_path, output_path, workers, batch_size):
+    """
+    Process :
+        Running the process_file() function on all the files present in the input_path directory and saving them in 
+        the output_path folder
+
+    Inputs :
+        input_path: str 
+        output_path: str 
+        workers : int 
+        batch_size : int 
+
+    Outputs :
+        None : Saves the processed images to the output_path directory 
+
+    Note : Adjust workers and batch_size according to your hardware capacity
+    """
 
     os.makedirs(output_path, exist_ok=True)
 
@@ -120,23 +187,15 @@ def preproces_pipeline(input_path, output_path, workers, batch_size):
 
             for _ in tqdm(as_completed(futures), total=len(images), desc=f"Batch {batch_num} Progress"):
                 pass  # Just iterating to track completion
-
-    #partial_preprocess_func = partial(preprocess_file, output_path=output_path)
-
-    #with ThreadPoolExecutor(max_workers=threads) as executor:
-    #    tqdm(executor.map(partial_preprocess_func, images), total=len(images), desc="Processing Images")
-    #with ProcessPoolExecutor(max_workers=workers) as executor:
-    #    futures = {executor.submit(partial_preprocess_func, img): img for img in images}
-
-    #    for _ in tqdm(as_completed(futures), total=len(images), desc="Processing Images"):
-    #        pass
     
     print("Preprocessing completed!")
 
+#########################################
 def load_files(file_batch):
     """Load only the given batch of files to avoid memory overuse."""
     return [LoadImage(file_path) for file_path in file_batch]  # Load batch-size files at a time
 
+#########################################
 def list_files(folder_path):
     """List only valid files from the directory (no loading yet)."""
     return sorted([
@@ -145,6 +204,7 @@ def list_files(folder_path):
         if file.endswith(("nii.gz", "mgz", "img", "img.gz"))
     ])
 
+#########################################
 def batch_iterator(file_list, batch_size):
     """Yield successive batch-sized chunks from the list of files."""
     for i in range(0, len(file_list), batch_size):

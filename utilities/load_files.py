@@ -4,6 +4,7 @@ from src.main import LoadImage
 import nibabel as nib
 
 def load_files(folder_path):
+    """Loads all the MRI files in the folder_path directory and returns them as list of LoadImage images"""
 
     folder = os.listdir(folder_path)
     images_list = []
@@ -16,6 +17,7 @@ def load_files(folder_path):
     return images_list
 
 def save_nifti(img, output_path):
+    """saves the nii files to the output_path"""
     nib_img = nib.Nifti1Image(img.data, img.affine)
     nib.save(nib_img, output_path)
 
@@ -82,6 +84,7 @@ def multiple_file_handler(folder_path : str) -> DataFrame :
     return folder_path_df
 
 def get_file_ext(file_path):
+    "Returns the extension of the file"
     extensions = []
     while True:
         file_name, file_ext = os.path.splitext(file_path)

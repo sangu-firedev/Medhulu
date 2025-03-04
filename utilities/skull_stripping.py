@@ -6,6 +6,21 @@ from functools import partial
 
 
 def _skull_strip(self, output_path, use_gpu=False):
+
+    """
+    Process :
+        This object function strips the skull of Raw MRI using an docker image
+
+    Inputs :
+        self : LoadImage 
+        output_path : str
+        use_gpu : boolean 
+
+    Outputs :
+        None : Just saves the stripped skull MRI in the output path 
+
+    """
+
     input_path = self.path
     from utilities.load_files import get_file_ext
     
@@ -42,6 +57,22 @@ def _skull_strip(self, output_path, use_gpu=False):
         print(f"Error running Synthstrip: {e}")
 
 def _skull_strip_files(input_path, output_path, use_gpu=False, threads=1):
+
+    """
+    Process :
+        This function strips the skull of Raw MRI using an docker image but on all the files present in the input_path folder
+
+    Inputs :
+        input_path : str
+        out_path : str
+        use_gpu : boolean 
+        threads : int 
+
+    Outputs :
+        None : saves all the stripped skull images in the output path folder 
+
+    """
+
     from utilities.load_files import load_files
 
     images_list = load_files(input_path)
