@@ -8,7 +8,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 from functools import partial
 from tqdm import tqdm
 
-from src.main import LoadImage
+from medhulu.main import LoadImage
 from utilities.load_files import save_nifti 
 
 

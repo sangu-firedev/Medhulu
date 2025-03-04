@@ -1,6 +1,6 @@
 import os
 from pandas import DataFrame
-from src.main import LoadImage
+from medhulu.main import LoadImage
 import nibabel as nib
 
 def load_files(folder_path):
