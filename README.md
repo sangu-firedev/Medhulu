@@ -69,15 +69,14 @@ The `LoadImage` class provides an object-oriented approach to handling MRI image
 Example:
 ```python
 image = LoadImage("path/to/mri.nii.gz")
-data = image()  # Calls the __call__ method to retrieve MRI data
 ```
 
 ## File Structure
+- `main.py`: Defines the `LoadImage` class for handling MRI images.
 - `load_files.py`: Handles file loading and metadata extraction.
 - `preprocess.py`: Implements normalization, bias field correction, segmentation, resampling, and image registration.
 - `skull_stripping.py`: Uses Docker-based SynthStrip for skull removal.
 - `plotting.py`: Generates visualizations for MRI slices and segmented regions.
-- `main.py`: Defines the `LoadImage` class for handling MRI images.
 
 ## License
 This project is licensed under the MIT License.
