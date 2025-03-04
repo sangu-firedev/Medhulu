@@ -1,2 +1,4 @@
 # Medulu
-An Simple AI Framework to Pre-process brain medical images, Train different models and Analyse 
+An Simple AI Framework to Visualize and Pre-process brain medical images
+
+
