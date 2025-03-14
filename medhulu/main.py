@@ -52,8 +52,8 @@ class LoadImage():
         """Returns the MRI data array"""
         return self.get_img().get_fdata()
 
-    def plot(self, slice=None, save_path=None):
-        _plot(self, slice=slice, save_path=save_path), 
+    def plot(self, cmap="gray", slice=None, save_path=None):
+        _plot(self, cmap=cmap, slice=slice, save_path=save_path) 
 
     def skull_strip(self, output_dir, load_nib=True):
         from utilities.load_files import get_file_ext

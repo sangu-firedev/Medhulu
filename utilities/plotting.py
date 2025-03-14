@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+from typing import List
 
-def _plot(self, slice=None, save_path=None):
+def _plot(self, cmap, slice=None, save_path=None):
     """
     Process :
         Plots the Saggital, Coronal and Axial view of the image according to the slice list for all three or it continues
@@ -11,6 +12,7 @@ def _plot(self, slice=None, save_path=None):
         self: LoadImage 
         slice: list[LoadImage] 
         save_path: str 
+        cmap: str
 
     Outputs :
         Plot : Plots the image  
@@ -36,13 +38,13 @@ def _plot(self, slice=None, save_path=None):
     axial_mid = np.rot90(axial_mid, k=1)
 
     fig, axs = plt.subplots(1, 3, figsize=(12, 4))
-    axs[0].imshow(saggital_mid, cmap='gray', aspect='auto')
+    axs[0].imshow(saggital_mid, cmap=cmap, aspect='auto')
     axs[0].axis("off")
 
-    axs[1].imshow(coronal_mid, cmap='gray', aspect='auto')
+    axs[1].imshow(coronal_mid, cmap=cmap, aspect='auto')
     axs[1].axis("off")
 
-    axs[2].imshow(axial_mid, cmap='gray', aspect='auto')
+    axs[2].imshow(axial_mid, cmap=cmap, aspect='auto')
     axs[2].axis("off")
     fig.tight_layout(pad=2.5)
     fig.suptitle(f"{self.name}")
