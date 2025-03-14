@@ -15,7 +15,7 @@ This repository provides a comprehensive toolkit for processing, analyzing, and 
 ## Installation
 To use this toolkit, install the required dependencies:
 ```bash
-pip install nibabel numpy matplotlib ants joblib tqdm
+pip install nibabel numpy matplotlib ants joblib tqdm monai
 ```
 Additionally, install Docker for skull stripping.
 
